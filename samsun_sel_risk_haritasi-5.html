@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Samsun Sel Risk Haritası</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Bebas+Neue&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium@main/folium/templates/leaflet_heat.min.js"></script>
+    <style>
+        :root {
+            --dusuk: #00c48c;
+            --orta: #f5c518;
+            --yuksek: #ff6b35;
+            --kritik: #e63946;
+            --bg: #0b0f1a;
+            --panel: #12172a;
+            --border: #1e2a45;
+            --text: #c8d6ef;
+            --accent: #4fc3f7;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); overflow: hidden; }
+        #app { display: flex; flex-direction: column; height: 100vh; }
+        #topbar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 1000; flex-shrink: 0; }
+        #topbar .logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); letter-spacing: 2px; }
+        #topbar .sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #5a7099; letter-spacing: 1px; }
+        #topbar .stats { display: flex; gap: 20px; }
+        .stat-pill { display: flex; flex-direction: column; align-items: center; padding: 4px 14px; border-radius: 6px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); }
+        .stat-pill .val { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; }
+        .stat-pill .lbl { font-size: 10px; color: #5a7099; letter-spacing: 0.5px; }
+        #map { flex: 1; width: 100%; }
+        #sidebar { position: absolute; top: 70px; left: 16px; width: 230px; z-index: 900; background: rgba(12,17,30,0.92); border: 1px solid var(--border); border-radius: 10px; padding: 14px; backdrop-filter: blur(8px); }
+        #sidebar h3 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 1.5px; margin-bottom: 12px; text-transform: uppercase; }
+        .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; font-size: 13px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15); }
+        .legend-bar { position: relative; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .legend-bar p { font-size: 10px; color: #5a7099; margin-bottom: 6px; font-family: 'IBM Plex Mono', monospace; }
+        .gradient-bar { height: 8px; border-radius: 4px; background: linear-gradient(to right, var(--dusuk), var(--orta), var(--yuksek), var(--kritik)); margin-bottom: 4px; }
+        .gradient-labels { display: flex; justify-content: space-between; font-size: 9px; color: #5a7099; font-family: 'IBM Plex Mono', monospace; }
+        #layer-ctrl { position: absolute; top: 70px; right: 16px; z-index: 900; background: rgba(12,17,30,0.92); border: 1px solid var(--border); border-radius: 10px; padding: 14px; backdrop-filter: blur(8px); min-width: 180px; }
+        #layer-ctrl h3 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
+        .layer-toggle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 10px; }
+        .layer-toggle label { font-size: 12px; cursor: pointer; }
+        .toggle-switch { position: relative; width: 34px; height: 18px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 18px; transition: 0.2s; cursor: pointer; }
+        .toggle-slider:before { content: ''; position: absolute; height: 12px; width: 12px; left: 3px; top: 3px; background: #5a7099; border-radius: 50%; transition: 0.2s; }
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); background: white; }
+        .leaflet-popup-content-wrapper { background: #0f1624 !important; border: 1px solid #1e2a45 !important; border-radius: 10px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important; color: #c8d6ef !important; }
+        .leaflet-popup-tip { background: #0f1624 !important; }
+        .popup-inner { width: 240px; }
+        .popup-inner h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); letter-spacing: 1px; margin-bottom: 8px; }
+        .popup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+        .popup-metric { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+        .popup-metric .pm-label { font-size: 9px; color: #5a7099; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
+        .popup-metric .pm-value { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; }
+        .risk-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+        .popup-oneri { font-size: 11px; line-height: 1.5; color: #8a9bc0; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 6px; }
+        .score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .score-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 3px; }
+        .score-val { font-family: 'IBM Plex Mono', monospace; font-size: 12px; width: 36px; text-align: right; }
+        .leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: #5a7099 !important; font-size: 10px !important; }
+        .leaflet-control-attribution a { color: #4fc3f7 !important; }
+        @keyframes ripple { 0% { box-shadow: 0 0 0 0 rgba(230,57,70,0.7); } 70% { box-shadow: 0 0 0 14px rgba(230,57,70,0); } 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0); } }
+        .pulse-icon { width: 14px; height: 14px; border-radius: 50%; background: #e63946; border: 2px solid rgba(255,255,255,0.7); animation: ripple 1.5s infinite; }
+        .leaflet-control-zoom a { background: #12172a !important; color: var(--accent) !important; border-color: var(--border) !important; }
+        .leaflet-control-zoom a:hover { background: var(--border) !important; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div id="topbar">
+        <div>
+            <div class="logo">⚠ FloodGuard AI</div>
+            <div class="sub">SAMSUN SEL RİSK ANALİZ SİSTEMİ · v2.2</div>
+        </div>
+        <div class="stats">
+            <div class="stat-pill"><span class="val" id="stat-kritik" style="color:#e63946">0</span><span class="lbl">KRİTİK</span></div>
+            <div class="stat-pill"><span class="val" id="stat-yuksek" style="color:#ff6b35">0</span><span class="lbl">YÜKSEK</span></div>
+            <div class="stat-pill"><span class="val" id="stat-orta" style="color:#f5c518">0</span><span class="lbl">ORTA</span></div>
+            <div class="stat-pill"><span class="val" id="stat-dusuk" style="color:#00c48c">0</span><span class="lbl">DÜŞÜK</span></div>
+            <div class="stat-pill"><span class="val" id="stat-toplam" style="color:#4fc3f7">0</span><span class="lbl">TOPLAM</span></div>
+        </div>
+    </div>
+    <div id="map"></div>
+</div>
+
+<div id="sidebar">
+    <h3>Risk Seviyesi</h3>
+    <div class="legend-item"><div class="legend-dot" style="background:#e63946"></div> Kritik Risk (&gt;80 puan)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff6b35"></div> Yüksek Risk (60–80)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f5c518"></div> Orta Risk (40–60)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00c48c"></div> Düşük Risk (&lt;40)</div>
+    <div class="legend-bar">
+        <p>RİSK YOĞUNLUĞU</p>
+        <div class="gradient-bar"></div>
+        <div class="gradient-labels"><span>Düşük</span><span>Kritik</span></div>
+    </div>
+</div>
+
+<div id="layer-ctrl">
+    <h3>Katmanlar</h3>
+    <div class="layer-toggle"><label>Isı Haritası</label><label class="toggle-switch"><input type="checkbox" id="tog-heat" checked><span class="toggle-slider"></span></label></div>
+    <div class="layer-toggle"><label>Kritik Noktalar</label><label class="toggle-switch"><input type="checkbox" id="tog-kritik" checked><span class="toggle-slider"></span></label></div>
+    <div class="layer-toggle"><label>Yüksek Risk</label><label class="toggle-switch"><input type="checkbox" id="tog-yuksek" checked><span class="toggle-slider"></span></label></div>
+    <div class="layer-toggle"><label>Orta / Düşük</label><label class="toggle-switch"><input type="checkbox" id="tog-diger" checked><span class="toggle-slider"></span></label></div>
+    <div class="layer-toggle" style="margin-top:10px;border-top:1px solid #1e2a45;padding-top:10px;">
+        <label>Harita Tipi</label>
+        <select id="base-sel" style="background:#12172a;color:#c8d6ef;border:1px solid #1e2a45;border-radius:4px;padding:2px 4px;font-size:11px;cursor:pointer;">
+            <option value="dark">Koyu</option>
+            <option value="topo">Topo</option>
+            <option value="sat">Uydu</option>
+        </select>
+    </div>
+</div>
+
+<script>
+const rawData = [
+  {bolge:"Ilkadim Merkez",yagis:85,dere:3.2,egim:2,altyapi:2,sel:4,nufus:5,lat:41.2867,lon:36.33,sinif:"Kritik"},
+  {bolge:"Atakum Sahil",yagis:45,dere:1.8,egim:4,altyapi:4,sel:1,nufus:4,lat:41.335,lon:36.25,sinif:"Orta"},
+  {bolge:"Tekkekoy Sanayi",yagis:30,dere:1.2,egim:3,altyapi:4,sel:1,nufus:3,lat:41.211,lon:36.46,sinif:"Dusuk"},
+  {bolge:"Bafra Ovasi",yagis:95,dere:3.5,egim:1,altyapi:2,sel:5,nufus:4,lat:41.568,lon:35.906,sinif:"Kritik"},
+  {bolge:"Carsamba Ovasi",yagis:88,dere:3.1,egim:1,altyapi:2,sel:4,nufus:4,lat:41.198,lon:36.721,sinif:"Kritik"},
+  {bolge:"Terme Merkez",yagis:78,dere:2.9,egim:1,altyapi:2,sel:4,nufus:3,lat:41.209,lon:36.974,sinif:"Yuksek"},
+  {bolge:"Vezirkopru",yagis:25,dere:0.9,egim:5,altyapi:5,sel:0,nufus:2,lat:41.143,lon:35.46,sinif:"Dusuk"},
+  {bolge:"Havza Merkez",yagis:35,dere:1.4,egim:4,altyapi:4,sel:1,nufus:2,lat:40.97,lon:35.66,sinif:"Dusuk"},
+  {bolge:"Kavak Merkez",yagis:50,dere:1.9,egim:3,altyapi:3,sel:2,nufus:3,lat:41.078,lon:36.042,sinif:"Orta"},
+  {bolge:"Ladik Merkez",yagis:40,dere:1.5,egim:4,altyapi:4,sel:1,nufus:2,lat:40.91,lon:35.89,sinif:"Dusuk"},
+  {bolge:"Ayvacik",yagis:82,dere:3.0,egim:1,altyapi:2,sel:4,nufus:3,lat:40.98,lon:36.63,sinif:"Yuksek"},
+  {bolge:"Salipazari",yagis:76,dere:2.8,egim:1,altyapi:2,sel:4,nufus:3,lat:41.083,lon:36.817,sinif:"Yuksek"},
+  {bolge:"Asarcik",yagis:28,dere:1.0,egim:5,altyapi:5,sel:0,nufus:1,lat:41.036,lon:36.235,sinif:"Dusuk"},
+  {bolge:"Yakakent",yagis:68,dere:2.5,egim:2,altyapi:3,sel:3,nufus:2,lat:41.632,lon:35.528,sinif:"Orta"},
+  {bolge:"Ondokuzmayis",yagis:55,dere:2.1,egim:3,altyapi:3,sel:2,nufus:3,lat:41.511,lon:36.071,sinif:"Orta"},
+  {bolge:"Alacam Merkez",yagis:42,dere:1.7,egim:4,altyapi:4,sel:1,nufus:2,lat:41.615,lon:35.606,sinif:"Dusuk"},
+  {bolge:"Merkez",yagis:65,dere:2.4,egim:2,altyapi:3,sel:3,nufus:5,lat:41.29,lon:36.32,sinif:"Yuksek"},
+  {bolge:"Ilkadim Derebahce",yagis:80,dere:2.9,egim:2,altyapi:2,sel:4,nufus:4,lat:41.275,lon:36.325,sinif:"Yuksek"},
+  {bolge:"Ilkadim Kirankoy",yagis:40,dere:1.5,egim:4,altyapi:3,sel:1,nufus:3,lat:41.268,lon:36.31,sinif:"Dusuk"},
+  {bolge:"Ilkadim FevziCakmak",yagis:55,dere:2.0,egim:3,altyapi:3,sel:2,nufus:4,lat:41.282,lon:36.34,sinif:"Orta"},
+  {bolge:"Ilkadim Catalarmut",yagis:62,dere:2.3,egim:3,altyapi:2,sel:3,nufus:3,lat:41.272,lon:36.295,sinif:"Orta"},
+  {bolge:"Atakum Mimarsinan",yagis:35,dere:1.3,egim:4,altyapi:4,sel:1,nufus:4,lat:41.325,lon:36.27,sinif:"Dusuk"},
+  {bolge:"Atakum Yenimahalle",yagis:50,dere:2.0,egim:3,altyapi:4,sel:2,nufus:4,lat:41.345,lon:36.23,sinif:"Orta"},
+  {bolge:"Atakum Kurupelit",yagis:42,dere:1.6,egim:4,altyapi:4,sel:1,nufus:3,lat:41.365,lon:36.19,sinif:"Dusuk"},
+  {bolge:"Atakum Balaç",yagis:30,dere:1.1,egim:5,altyapi:4,sel:0,nufus:2,lat:41.315,lon:36.24,sinif:"Dusuk"},
+  {bolge:"Atakum Taflan",yagis:65,dere:2.4,egim:2,altyapi:3,sel:3,nufus:3,lat:41.425,lon:36.12,sinif:"Orta"},
+  {bolge:"Tekkekoy Asarağaç",yagis:38,dere:1.4,egim:4,altyapi:4,sel:1,nufus:2,lat:41.225,lon:36.43,sinif:"Dusuk"},
+  {bolge:"Tekkekoy Kutlukent",yagis:55,dere:2.1,egim:3,altyapi:3,sel:2,nufus:3,lat:41.23,lon:36.45,sinif:"Orta"},
+  {bolge:"Tekkekoy Kirazlik",yagis:75,dere:2.8,egim:2,altyapi:2,sel:4,nufus:4,lat:41.24,lon:36.41,sinif:"Yuksek"},
+  {bolge:"Bafra Fatih",yagis:35,dere:1.3,egim:4,altyapi:4,sel:1,nufus:3,lat:41.555,lon:35.915,sinif:"Dusuk"},
+  {bolge:"Bafra KemalPasa",yagis:52,dere:2.0,egim:3,altyapi:3,sel:2,nufus:3,lat:41.56,lon:35.895,sinif:"Orta"},
+  {bolge:"Bafra Hacınabi",yagis:78,dere:2.9,egim:2,altyapi:2,sel:4,nufus:4,lat:41.57,lon:35.92,sinif:"Yuksek"},
+  {bolge:"Bafra KızılırmakBoyu",yagis:99,dere:3.9,egim:1,altyapi:1,sel:5,nufus:3,lat:41.585,lon:35.901,sinif:"Kritik"},
+  {bolge:"Carsamba Yesilirmak",yagis:92,dere:3.6,egim:1,altyapi:1,sel:5,nufus:4,lat:41.205,lon:36.715,sinif:"Kritik"},
+  {bolge:"Carsamba Sungurlu",yagis:70,dere:2.6,egim:2,altyapi:3,sel:3,nufus:4,lat:41.192,lon:36.73,sinif:"Yuksek"},
+  {bolge:"Carsamba Beyyenice",yagis:50,dere:1.9,egim:3,altyapi:4,sel:2,nufus:2,lat:41.18,lon:36.7,sinif:"Orta"},
+  {bolge:"Vezirkopru Koprulu",yagis:20,dere:0.8,egim:5,altyapi:5,sel:0,nufus:3,lat:41.14,lon:35.45,sinif:"Dusuk"},
+  {bolge:"Vezirkopru Sahinkaya",yagis:32,dere:1.2,egim:5,altyapi:4,sel:1,nufus:1,lat:41.24,lon:35.49,sinif:"Dusuk"},
+  {bolge:"Havza Boyalica",yagis:28,dere:1.0,egim:4,altyapi:5,sel:0,nufus:1,lat:40.95,lon:35.68,sinif:"Dusuk"},
+  {bolge:"Havza Karameşe",yagis:45,dere:1.7,egim:3,altyapi:4,sel:2,nufus:2,lat:40.98,lon:35.63,sinif:"Dusuk"},
+  {bolge:"Kavak Çakallı",yagis:62,dere:2.4,egim:2,altyapi:3,sel:3,nufus:2,lat:41.12,lon:36.06,sinif:"Orta"},
+  {bolge:"Kavak Yaşardoğu",yagis:42,dere:1.5,egim:3,altyapi:4,sel:1,nufus:3,lat:41.07,lon:36.03,sinif:"Dusuk"},
+  {bolge:"Ladik GolüÇevresi",yagis:58,dere:2.2,egim:2,altyapi:3,sel:2,nufus:2,lat:40.92,lon:35.94,sinif:"Orta"},
+  {bolge:"Ladik Bahçeleri",yagis:35,dere:1.3,egim:4,altyapi:4,sel:1,nufus:2,lat:40.9,lon:35.88,sinif:"Dusuk"},
+  {bolge:"Ayvacik BarajYolu",yagis:89,dere:3.4,egim:1,altyapi:2,sel:5,nufus:2,lat:40.99,lon:36.65,sinif:"Kritik"},
+  {bolge:"Ayvacik Camalan",yagis:68,dere:2.5,egim:2,altyapi:3,sel:3,nufus:2,lat:40.96,lon:36.61,sinif:"Orta"},
+  {bolge:"Salipazari Bereket",yagis:80,dere:3.1,egim:1,altyapi:2,sel:4,nufus:3,lat:41.088,lon:36.825,sinif:"Yuksek"},
+  {bolge:"Salipazari Gavas",yagis:64,dere:2.3,egim:2,altyapi:3,sel:3,nufus:2,lat:41.075,lon:36.805,sinif:"Orta"},
+  {bolge:"Asarcik Biçincik",yagis:22,dere:0.7,egim:5,altyapi:5,sel:0,nufus:1,lat:41.02,lon:36.22,sinif:"Dusuk"},
+  {bolge:"Yakakent Liman",yagis:72,dere:2.8,egim:2,altyapi:2,sel:4,nufus:3,lat:41.635,lon:35.515,sinif:"Yuksek"},
+  {bolge:"Yakakent Kozkoy",yagis:48,dere:1.8,egim:3,altyapi:4,sel:2,nufus:1,lat:41.61,lon:35.54,sinif:"Dusuk"},
+  {bolge:"Ondokuzmayis Yukari",yagis:40,dere:1.4,egim:4,altyapi:4,sel:1,nufus:2,lat:41.49,lon:36.05,sinif:"Dusuk"},
+  {bolge:"Alacam Gocu",yagis:38,dere:1.3,egim:4,altyapi:4,sel:1,nufus:2,lat:41.6,lon:35.59,sinif:"Dusuk"},
+  {bolge:"Alacam Zeytin",yagis:55,dere:2.1,egim:3,altyapi:3,sel:2,nufus:2,lat:41.62,lon:35.62,sinif:"Orta"},
+  {bolge:"Samsun LimanCevresi",yagis:96,dere:3.7,egim:1,altyapi:1,sel:5,nufus:5,lat:41.295,lon:36.335,sinif:"Kritik"},
+  {bolge:"Samsun Meydan",yagis:50,dere:1.8,egim:3,altyapi:3,sel:2,nufus:5,lat:41.289,lon:36.331,sinif:"Orta"},
+  {bolge:"Atakum OMÜKampus",yagis:25,dere:0.9,egim:5,altyapi:5,sel:0,nufus:4,lat:41.368,lon:36.185,sinif:"Dusuk"},
+  {bolge:"Canik CezaeviCevresi",yagis:68,dere:2.4,egim:2,altyapi:3,sel:3,nufus:4,lat:41.272,lon:36.355,sinif:"Yuksek"},
+  {bolge:"Tekkekoy Organize",yagis:72,dere:2.6,egim:2,altyapi:3,sel:3,nufus:3,lat:41.235,lon:36.425,sinif:"Yuksek"},
+  {bolge:"Bafra Çetinkaya",yagis:84,dere:3.0,egim:1,altyapi:2,sel:4,nufus:3,lat:41.55,lon:35.88,sinif:"Yuksek"},
+  {bolge:"Carsamba Havaalani",yagis:45,dere:1.6,egim:2,altyapi:4,sel:1,nufus:2,lat:41.25,lon:36.55,sinif:"Dusuk"},
+  {bolge:"Ilkadim Zeytinlik",yagis:58,dere:2.2,egim:3,altyapi:3,sel:2,nufus:4,lat:41.278,lon:36.32,sinif:"Orta"},
+  {bolge:"Ilkadim Kadifekale",yagis:35,dere:1.2,egim:5,altyapi:4,sel:1,nufus:4,lat:41.27,lon:36.315,sinif:"Dusuk"},
+  {bolge:"Atakum Guzelyali",yagis:48,dere:1.9,egim:3,altyapi:4,sel:2,nufus:4,lat:41.355,lon:36.21,sinif:"Orta"},
+  {bolge:"Atakum Esenevler",yagis:42,dere:1.5,egim:3,altyapi:4,sel:1,nufus:4,lat:41.33,lon:36.26,sinif:"Dusuk"},
+  {bolge:"Tekkekoy Merkez",yagis:40,dere:1.4,egim:3,altyapi:4,sel:1,nufus:3,lat:41.215,lon:36.445,sinif:"Dusuk"},
+  {bolge:"Carsamba YeşilırmakSol",yagis:87,dere:3.2,egim:1,altyapi:2,sel:4,nufus:3,lat:41.2,lon:36.71,sinif:"Kritik"},
+  {bolge:"Kavak İstasyon",yagis:45,dere:1.6,egim:3,altyapi:4,sel:1,nufus:2,lat:41.08,lon:36.05,sinif:"Dusuk"},
+  {bolge:"Ladik Camiyanı",yagis:38,dere:1.4,egim:4,altyapi:4,sel:1,nufus:1,lat:40.93,lon:35.87,sinif:"Dusuk"},
+  {bolge:"Ayvacik Yesilyurt",yagis:78,dere:2.9,egim:1,altyapi:2,sel:4,nufus:2,lat:40.97,lon:36.64,sinif:"Yuksek"},
+  {bolge:"Salipazari Yavas",yagis:72,dere:2.6,egim:2,altyapi:2,sel:3,nufus:2,lat:41.09,lon:36.81,sinif:"Orta"},
+  {bolge:"Ondokuzmayis Dereboyu",yagis:76,dere:3.0,egim:2,altyapi:2,sel:3,nufus:3,lat:41.52,lon:36.06,sinif:"Yuksek"},
+  {bolge:"Alacam Sahil",yagis:68,dere:2.5,egim:2,altyapi:3,sel:3,nufus:2,lat:41.63,lon:35.6,sinif:"Orta"},
+  {bolge:"Ilkadim Kıran",yagis:52,dere:2.0,egim:3,altyapi:4,sel:2,nufus:3,lat:41.26,lon:36.3,sinif:"Orta"},
+  {bolge:"Canik Yayla",yagis:35,dere:1.2,egim:4,altyapi:4,sel:1,nufus:2,lat:41.25,lon:36.38,sinif:"Dusuk"},
+  {bolge:"Atakum Çakırlar",yagis:64,dere:2.5,egim:2,altyapi:3,sel:2,nufus:3,lat:41.39,lon:36.15,sinif:"Orta"},
+  {bolge:"Tekkekoy Selyeri",yagis:82,dere:3.1,egim:1,altyapi:2,sel:4,nufus:3,lat:41.22,lon:36.47,sinif:"Yuksek"},
+  {bolge:"Bafra Dedeli",yagis:48,dere:1.7,egim:3,altyapi:4,sel:2,nufus:2,lat:41.53,lon:35.92,sinif:"Dusuk"},
+  {bolge:"Carsamba Dikbiyik",yagis:60,dere:2.2,egim:2,altyapi:3,sel:2,nufus:3,lat:41.21,lon:36.6,sinif:"Orta"},
+  {bolge:"Terme Akçagün",yagis:65,dere:2.4,egim:2,altyapi:3,sel:3,nufus:2,lat:41.18,lon:36.99,sinif:"Orta"},
+  {bolge:"Havza Bekdiğin",yagis:30,dere:1.1,egim:4,altyapi:4,sel:0,nufus:2,lat:41.02,lon:35.7,sinif:"Dusuk"},
+  {bolge:"Kavak Mahmutlu",yagis:48,dere:1.7,egim:3,altyapi:4,sel:1,nufus:2,lat:41.05,lon:36.02,sinif:"Dusuk"},
+  {bolge:"Ladik Mazlumoğlu",yagis:32,dere:1.2,egim:4,altyapi:5,sel:1,nufus:1,lat:40.89,lon:35.91,sinif:"Dusuk"},
+  {bolge:"Ayvacik Orhangazi",yagis:80,dere:3.0,egim:1,altyapi:2,sel:4,nufus:3,lat:41.0,lon:36.62,sinif:"Yuksek"}
+];
+
+var C = {Kritik:'#e63946', Yuksek:'#ff6b35', Orta:'#f5c518', Dusuk:'#00c48c'};
+function getColor(s) { return C[s] || '#888'; }
+function radiusFor(s) { return {Kritik:11,Yuksek:9,Orta:7,Dusuk:5}[s] || 6; }
+
+function calcScore(d) {
+    var ny = Math.min(d.yagis/100,1);
+    var nd = Math.min(d.dere/4,1);
+    var ne = 1-(d.egim-1)/4;
+    var na = 1-(d.altyapi-1)/4;
+    var ns = Math.min(d.sel/5,1);
+    var nn = Math.min(d.nufus/5,1);
+    return (ny*0.30 + nd*0.25 + ne*0.15 + na*0.15 + ns*0.10 + nn*0.05)*100;
+}
+
+var tileLayers = {
+    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution:'© OpenStreetMap © CARTO',maxZoom:20,subdomains:'abcd'}),
+    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {attribution:'© OpenTopoMap',maxZoom:17}),
+    sat:  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {attribution:'© Esri',maxZoom:18}),
+};
+
+var map = L.map('map', {center:[41.28,36.30],zoom:11,layers:[tileLayers.dark]});
+
+var layerHeat   = L.layerGroup().addTo(map);
+var layerKritik = L.layerGroup().addTo(map);
+var layerYuksek = L.layerGroup().addTo(map);
+var layerDiger  = L.layerGroup().addTo(map);
+
+var counts = {Kritik:0,Yuksek:0,Orta:0,Dusuk:0};
+var heatPoints = [];
+
+var ONERI = {
+    Kritik: 'Acil tahliye başlatılmalı. AFAD ve belediye ekipleri yönlendirilmeli.',
+    Yuksek: 'Bölge izlemeye alınmalı, hazırlık ekipleri konuşlandırılmalı.',
+    Orta:   'Düzenli izleme yapılmalı, altyapı kontrolleri sürdürülmeli.',
+    Dusuk:  'Rutin denetimler yeterli. Erken uyarı sistemleri aktif tutulmalı.'
+};
+
+rawData.forEach(function(d) {
+    counts[d.sinif]++;
+    var score = calcScore(d);
+    var pct = score.toFixed(1);
+    var col = getColor(d.sinif);
+    var w = {Kritik:1.0,Yuksek:0.75,Orta:0.45,Dusuk:0.2}[d.sinif] || 0.3;
+    heatPoints.push([d.lat, d.lon, w]);
+
+    var popupHtml = '<div class="popup-inner">'
+        + '<h3>' + d.bolge + '</h3>'
+        + '<span class="risk-badge" style="background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44">' + d.sinif.toUpperCase() + ' RİSK</span>'
+        + '<div class="score-row"><div class="score-bar-bg"><div class="score-bar-fill" style="width:' + pct + '%;background:' + col + '"></div></div><span class="score-val" style="color:' + col + '">' + pct + '</span></div>'
+        + '<div class="popup-grid">'
+        + '<div class="popup-metric"><div class="pm-label">Yağış</div><div class="pm-value" style="color:' + col + '">' + d.yagis + ' mm</div></div>'
+        + '<div class="popup-metric"><div class="pm-label">Dere Seviyesi</div><div class="pm-value" style="color:' + col + '">' + d.dere + ' m</div></div>'
+        + '<div class="popup-metric"><div class="pm-label">Zemin Eğimi</div><div class="pm-value">' + d.egim + '/5</div></div>'
+        + '<div class="popup-metric"><div class="pm-label">Geçmiş Sel</div><div class="pm-value">' + d.sel + ' kez</div></div>'
+        + '<div class="popup-metric"><div class="pm-label">Altyapı</div><div class="pm-value">' + d.altyapi + '/5</div></div>'
+        + '<div class="popup-metric"><div class="pm-label">Nüfus Yoğ.</div><div class="pm-value">' + d.nufus + '/5</div></div>'
+        + '</div>'
+        + '<div class="popup-oneri">⚡ <b>Öneri:</b> ' + ONERI[d.sinif] + '</div>'
+        + '</div>';
+
+    var marker = L.circleMarker([d.lat, d.lon], {
+        radius: radiusFor(d.sinif),
+        color: col, fillColor: col, fillOpacity: 0.85, weight: 1.5, opacity: 1
+    }).bindPopup(popupHtml, {maxWidth:280})
+      .bindTooltip('<b>' + d.bolge + '</b> · ' + d.sinif + ' · ' + pct + ' puan', {sticky:true});
+
+    if (d.sinif === 'Kritik') {
+        var pulse = L.divIcon({html:'<div class="pulse-icon"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]});
+        L.marker([d.lat,d.lon],{icon:pulse}).bindTooltip('⚠ KRİTİK: ' + d.bolge,{sticky:true}).addTo(layerKritik);
+        marker.addTo(layerKritik);
+    } else if (d.sinif === 'Yuksek') {
+        marker.addTo(layerYuksek);
+    } else {
+        marker.addTo(layerDiger);
+    }
+});
+
+if (L.heatLayer) {
+    L.heatLayer(heatPoints, {radius:28,blur:20,minOpacity:0.25,gradient:{0.0:'#00c48c',0.4:'#f5c518',0.7:'#ff6b35',1.0:'#e63946'}}).addTo(layerHeat);
+}
+
+document.getElementById('stat-kritik').textContent = counts.Kritik;
+document.getElementById('stat-yuksek').textContent = counts.Yuksek;
+document.getElementById('stat-orta').textContent   = counts.Orta;
+document.getElementById('stat-dusuk').textContent  = counts.Dusuk;
+document.getElementById('stat-toplam').textContent = counts.Kritik + counts.Yuksek + counts.Orta + counts.Dusuk;
+
+document.getElementById('tog-heat').addEventListener('change', function(e)   { e.target.checked ? layerHeat.addTo(map)   : map.removeLayer(layerHeat);   });
+document.getElementById('tog-kritik').addEventListener('change', function(e) { e.target.checked ? layerKritik.addTo(map) : map.removeLayer(layerKritik); });
+document.getElementById('tog-yuksek').addEventListener('change', function(e) { e.target.checked ? layerYuksek.addTo(map) : map.removeLayer(layerYuksek); });
+document.getElementById('tog-diger').addEventListener('change', function(e)  { e.target.checked ? layerDiger.addTo(map)  : map.removeLayer(layerDiger);  });
+document.getElementById('base-sel').addEventListener('change', function(e) {
+    Object.values(tileLayers).forEach(function(t) { map.removeLayer(t); });
+    tileLayers[e.target.value].addTo(map);
+    tileLayers[e.target.value].bringToBack();
+});
+</script>
+</body>
+</html>

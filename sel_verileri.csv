@@ -1,0 +1,92 @@
+bolge,yagis_miktari,dere_seviyesi,zemin_egimi,altyapi_durumu,gecmis_sel_sayisi,nufus_yogunlugu,enlem,boylam,risk_sinifi
+Ilkadim Merkez,85,3.2,2,2,4,5,41.2867,36.33,Kritik
+Atakum Sahil,45,1.8,4,4,1,4,41.335,36.25,Orta
+Tekkekoy Sanayi,30,1.2,3,4,1,3,41.211,36.46,Dusuk
+Bafra Ovasi,95,3.5,1,2,5,4,41.568,35.906,Kritik
+Carsamba Ovasi,88,3.1,1,2,4,4,41.198,36.721,Kritik
+Terme Merkez,78,2.9,1,2,4,3,41.209,36.974,Yuksek
+Vezirkopru,25,0.9,5,5,0,2,41.143,35.46,Dusuk
+Havza Merkez,35,1.4,4,4,1,2,40.97,35.66,Dusuk
+Kavak Merkez,50,1.9,3,3,2,3,41.078,36.042,Orta
+Ladik Merkez,40,1.5,4,4,1,2,40.91,35.89,Dusuk
+Ayvacik,82,3.0,1,2,4,3,40.98,36.63,Yuksek
+Salipazari,76,2.8,1,2,4,3,41.083,36.817,Yuksek
+Asarcik,28,1.0,5,5,0,1,41.036,36.235,Dusuk
+Yakakent,68,2.5,2,3,3,2,41.632,35.528,Orta
+Ondokuzmayis,55,2.1,3,3,2,3,41.511,36.071,Orta
+Alacam Merkez,42,1.7,4,4,1,2,41.615,35.606,Dusuk
+Merkez,65,2.4,2,3,3,5,41.29,36.32,Yuksek
+Sahil,98,3.8,1,1,5,5,41.31,36.34,Kritik
+Ilkadim Derebahce,80,2.9,2,2,4,4,41.275,36.325,Yuksek
+Ilkadim Kirankoy,40,1.5,4,3,1,3,41.268,36.31,Dusuk
+Ilkadim FevziCakmak,55,2.0,3,3,2,4,41.282,36.34,Orta
+Ilkadim Catalarmut,62,2.3,3,2,3,3,41.272,36.295,Orta
+Canik Haskoy,70,2.5,2,3,3,4,41.285,36.385,Yuksek
+Atakum Mimarsinan,35,1.3,4,4,1,4,41.325,36.27,Dusuk
+Atakum Yenimahalle,50,2.0,3,4,2,4,41.345,36.23,Orta
+Atakum Kurupelit,42,1.6,4,4,1,3,41.365,36.19,Dusuk
+Atakum Balaç,30,1.1,5,4,0,2,41.315,36.24,Dusuk
+Atakum Taflan,65,2.4,2,3,3,3,41.425,36.12,Orta
+Tekkekoy Asarağaç,38,1.4,4,4,1,2,41.225,36.43,Dusuk
+Tekkekoy Kutlukent,55,2.1,3,3,2,3,41.23,36.45,Orta
+Tekkekoy Kirazlik,75,2.8,2,2,4,4,41.24,36.41,Yuksek
+Bafra Fatih,35,1.3,4,4,1,3,41.555,35.915,Dusuk
+Bafra KemalPasa,52,2.0,3,3,2,3,41.56,35.895,Orta
+Bafra Hacınabi,78,2.9,2,2,4,4,41.57,35.92,Yuksek
+Bafra KızılırmakBoyu,99,3.9,1,1,5,3,41.585,35.901,Kritik
+Carsamba Yesilirmak,92,3.6,1,1,5,4,41.205,36.715,Kritik
+Carsamba Sungurlu,70,2.6,2,3,3,4,41.192,36.73,Yuksek
+Carsamba Beyyenice,50,1.9,3,4,2,2,41.18,36.7,Orta
+Terme Fenk,85,3.3,1,2,4,4,41.212,36.98,Kritik
+Terme Evci,74,2.7,2,2,4,3,41.22,37.02,Yuksek
+Vezirkopru Koprulu,20,0.8,5,5,0,3,41.14,35.45,Dusuk
+Vezirkopru Sahinkaya,32,1.2,5,4,1,1,41.24,35.49,Dusuk
+Havza Boyalica,28,1.0,4,5,0,1,40.95,35.68,Dusuk
+Havza Karameşe,45,1.7,3,4,2,2,40.98,35.63,Dusuk
+Kavak Çakallı,62,2.4,2,3,3,2,41.12,36.06,Orta
+Kavak Yaşardoğu,42,1.5,3,4,1,3,41.07,36.03,Dusuk
+Ladik GolüÇevresi,58,2.2,2,3,2,2,40.92,35.94,Orta
+Ladik Bahçeleri,35,1.3,4,4,1,2,40.9,35.88,Dusuk
+Ayvacik BarajYolu,89,3.4,1,2,5,2,40.99,36.65,Kritik
+Ayvacik Camalan,68,2.5,2,3,3,2,40.96,36.61,Orta
+Salipazari Bereket,80,3.1,1,2,4,3,41.088,36.825,Yuksek
+Salipazari Gavas,64,2.3,2,3,3,2,41.075,36.805,Orta
+Asarcik Biçincik,22,0.7,5,5,0,1,41.02,36.22,Dusuk
+Yakakent Liman,72,2.8,2,2,4,3,41.635,35.515,Yuksek
+Yakakent Kozkoy,48,1.8,3,4,2,1,41.61,35.54,Dusuk
+Ondokuzmayis Engiz,60,2.3,3,3,2,3,41.515,36.08,Orta
+Ondokuzmayis Yukari,40,1.4,4,4,1,2,41.49,36.05,Dusuk
+Alacam Gocu,38,1.3,4,4,1,2,41.6,35.59,Dusuk
+Alacam Zeytin,55,2.1,3,3,2,2,41.62,35.62,Orta
+Samsun LimanCevresi,96,3.7,1,1,5,5,41.295,36.335,Kritik
+Samsun Meydan,50,1.8,3,3,2,5,41.289,36.331,Orta
+Atakum OMÜKampus,25,0.9,5,5,0,4,41.368,36.185,Dusuk
+Canik CezaeviCevresi,68,2.4,2,3,3,4,41.272,36.355,Yuksek
+Tekkekoy Organize,72,2.6,2,3,3,3,41.235,36.425,Yuksek
+Bafra Çetinkaya,84,3.0,1,2,4,3,41.55,35.88,Yuksek
+Carsamba Havaalani,45,1.6,2,4,1,2,41.25,36.55,Dusuk
+Ilkadim Zeytinlik,58,2.2,3,3,2,4,41.278,36.32,Orta
+Ilkadim Kadifekale,35,1.2,5,4,1,4,41.27,36.315,Dusuk
+Atakum Guzelyali,48,1.9,3,4,2,4,41.355,36.21,Orta
+Atakum Esenevler,42,1.5,3,4,1,4,41.33,36.26,Dusuk
+Tekkekoy Merkez,40,1.4,3,4,1,3,41.215,36.445,Dusuk
+Bafra Altinkum,90,3.3,1,2,5,2,41.62,35.94,Kritik
+Carsamba YeşilırmakSol,87,3.2,1,2,4,3,41.2,36.71,Kritik
+Terme Kozluk,70,2.6,2,3,3,2,41.225,36.95,Orta
+Kavak İstasyon,45,1.6,3,4,1,2,41.08,36.05,Dusuk
+Ladik Camiyanı,38,1.4,4,4,1,1,40.93,35.87,Dusuk
+Ayvacik Yesilyurt,78,2.9,1,2,4,2,40.97,36.64,Yuksek
+Salipazari Yavas,72,2.6,2,2,3,2,41.09,36.81,Orta
+Ondokuzmayis Dereboyu,76,3.0,2,2,3,3,41.52,36.06,Yuksek
+Alacam Sahil,68,2.5,2,3,3,2,41.63,35.6,Orta
+Ilkadim Kıran,52,2.0,3,4,2,3,41.26,36.3,Orta
+Canik Yayla,35,1.2,4,4,1,2,41.25,36.38,Dusuk
+Atakum Çakırlar,64,2.5,2,3,2,3,41.39,36.15,Orta
+Tekkekoy Selyeri,82,3.1,1,2,4,3,41.22,36.47,Yuksek
+Bafra Dedeli,48,1.7,3,4,2,2,41.53,35.92,Dusuk
+Carsamba Dikbiyik,60,2.2,2,3,2,3,41.21,36.6,Orta
+Terme Akçagün,65,2.4,2,3,3,2,41.18,36.99,Orta
+Havza Bekdiğin,30,1.1,4,4,0,2,41.02,35.7,Dusuk
+Kavak Mahmutlu,48,1.7,3,4,1,2,41.05,36.02,Dusuk
+Ladik Mazlumoğlu,32,1.2,4,5,1,1,40.89,35.91,Dusuk
+Ayvacik Orhangazi,80,3.0,1,2,4,3,41.0,36.62,Yuksek
